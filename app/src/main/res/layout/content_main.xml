@@ -13,8 +13,41 @@
   tools:context="rover.pi.mhutti1.eu.rover.MainActivity"
   tools:showIn="@layout/app_bar_main">
 
+  <LinearLayout
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <SeekBar
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:id="@+id/left"
+      android:layout_weight="1"
+      android:scrollbarSize="50dp"
+      android:layout_marginTop="71dp"
+      android:layout_alignParentStart="true"
+      android:max="100"
+      android:progress="50" />
+
+    <SeekBar
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:id="@+id/right"
+      android:layout_weight="1"
+      android:scrollbarSize="50dp"
+      android:layout_alignParentBottom="true"
+      android:layout_alignParentStart="true"
+      android:layout_marginBottom="57dp"
+      android:progress="50"
+      android:max="100" />
+  </LinearLayout>
+
   <TextView
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:text="Hello World!" />
+    android:text="Team Team"
+    android:layout_alignParentTop="true"
+    android:layout_centerHorizontal="true" />
+
+
 </RelativeLayout>

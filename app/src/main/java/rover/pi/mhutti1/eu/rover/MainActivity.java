@@ -1,20 +1,30 @@
 package rover.pi.mhutti1.eu.rover;
 
+import android.content.Context;
+import android.net.wifi.WifiInfo;
+import android.net.wifi.WifiManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.SeekBar;
+
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class MainActivity extends AppCompatActivity
     implements NavigationView.OnNavigationItemSelectedListener {
+
+  public static final String PI_HOSTNAME = "raspberrypi";
+  private SeekBar left;
+  private SeekBar right;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -22,15 +32,6 @@ public class MainActivity extends AppCompatActivity
     setContentView(R.layout.activity_main);
     Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
     setSupportActionBar(toolbar);
-
-    FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-    fab.setOnClickListener(new View.OnClickListener() {
-      @Override
-      public void onClick(View view) {
-        Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-            .setAction("Action", null).show();
-      }
-    });
 
     DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
     ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -40,6 +41,17 @@ public class MainActivity extends AppCompatActivity
 
     NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
     navigationView.setNavigationItemSelectedListener(this);
+
+    left = (SeekBar) findViewById(R.id.left);
+    right = (SeekBar) findViewById(R.id.right);
+
+
+    left.setEnabled(false);
+    right.setEnabled(false);
+
+    IPFetcher ipFetcher = new IPFetcher();
+    ipFetcher.execute();
+
   }
 
   @Override
@@ -97,5 +109,50 @@ public class MainActivity extends AppCompatActivity
     DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
     drawer.closeDrawer(GravityCompat.START);
     return true;
+  }
+
+  class IPFetcher extends AsyncTask<Void, String, String> {
+
+    private Exception exception;
+
+    private String findPi() {
+      String myIp = getIp();
+      String ip = getIp().substring(0, myIp.lastIndexOf('.') + 1);
+      for (int i = 0; i < 255; i++) {
+        try {
+          InetAddress addr = InetAddress.getByName(ip + i);
+          String host = addr.getHostName();
+          Log.d("pi-rover", host);
+          if (host.equals(PI_HOSTNAME)) {
+            return ip + i;
+          }
+        } catch (UnknownHostException e) {
+        }
+      }
+      return null;
+    }
+
+    private String getIp() {
+      WifiManager wifiMan = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+      WifiInfo wifiInf = wifiMan.getConnectionInfo();
+      int ipAddress = wifiInf.getIpAddress();
+      return String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff), (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
+    }
+
+    @Override
+    protected String doInBackground(Void... voids) {
+      return findPi();
+    }
+
+    @Override
+    protected void onPostExecute(String baseURL) {
+      if (baseURL != null) {
+        left.setOnSeekBarChangeListener(new ThrottleChangeListener(baseURL + "/left.php"));
+        right.setOnSeekBarChangeListener(new ThrottleChangeListener(baseURL + "/right.php"));
+        left.setEnabled(true);
+        right.setEnabled(true);
+      }
+    }
+
   }
 }
