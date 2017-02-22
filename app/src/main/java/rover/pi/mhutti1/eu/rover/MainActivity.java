@@ -16,13 +16,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.SeekBar;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 public class MainActivity extends AppCompatActivity
     implements NavigationView.OnNavigationItemSelectedListener {
 
-  public static final String PI_HOSTNAME = "raspberrypi";
   private SeekBar left;
   private SeekBar right;
 
@@ -118,25 +118,20 @@ public class MainActivity extends AppCompatActivity
     private String findPi() {
       String myIp = getIp();
       String ip = getIp().substring(0, myIp.lastIndexOf('.') + 1);
-      for (int i = 0; i < 255; i++) {
+      for (int i = 2; i < 255; i++) {
         try {
-          InetAddress addr = InetAddress.getByName(ip + i);
-          String host = addr.getHostName();
-          Log.d("pi-rover", host);
-          if (host.equals(PI_HOSTNAME)) {
+          if (InetAddress.getByName(ip + i).isReachable(50)) {
             return ip + i;
           }
-        } catch (UnknownHostException e) {
+        } catch (IOException e) {
+          e.printStackTrace();
         }
       }
       return null;
     }
 
     private String getIp() {
-      WifiManager wifiMan = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-      WifiInfo wifiInf = wifiMan.getConnectionInfo();
-      int ipAddress = wifiInf.getIpAddress();
-      return String.format("%d.%d.%d.%d", (ipAddress & 0xff), (ipAddress >> 8 & 0xff), (ipAddress >> 16 & 0xff), (ipAddress >> 24 & 0xff));
+      return "192.168.43.1";
     }
 
     @Override

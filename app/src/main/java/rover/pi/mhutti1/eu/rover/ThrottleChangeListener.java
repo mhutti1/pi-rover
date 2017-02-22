@@ -10,6 +10,9 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Created by Isaac on 21/02/2017.
  */
@@ -37,14 +40,15 @@ class ThrottleChangeListener implements SeekBar.OnSeekBarChangeListener{
     seekBar.setProgress(50);
   }
 
-  private void sendUpdate(SeekBar seekbar) {
+  private void sendUpdate(final SeekBar seekbar) {
     // Instantiate the RequestQueue.
     RequestQueue queue = Volley.newRequestQueue(seekbar.getContext());
     // Request a string response from the provided URL.
-    StringRequest stringRequest = new StringRequest(Request.Method.GET, url + (seekbar.getProgress() - 50),
+    StringRequest stringRequest = new StringRequest(Request.Method.GET, "http://" + url + "?power=" + (seekbar.getProgress() - 50),
         new Response.Listener<String>() {
           @Override
           public void onResponse(String response) {}
+
         }, new Response.ErrorListener() {
       @Override
       public void onErrorResponse(VolleyError error) {
@@ -52,6 +56,13 @@ class ThrottleChangeListener implements SeekBar.OnSeekBarChangeListener{
       }
     });
 // Add the request to the RequestQueue.
+    queue.cancelAll(new RequestQueue.RequestFilter() {
+      @Override
+      public boolean apply(Request<?> request) {
+        return true;
+      }
+    });
+
     queue.add(stringRequest);
   }
 
